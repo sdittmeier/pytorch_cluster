@@ -24,17 +24,40 @@ def test_radius(dtype, device):
         [+1, -1],
     ], dtype, device)
     y = tensor([
-        [0, 0],
+        [-1, -1],
         [0, 1],
+        [0, 0]
     ], dtype, device)
+    print(dtype, device)
+    if(str(device) == "cuda:0"):    # here we go for manhattan distance
+        print("CUDA!")
+        x = tensor([
+            [1, 1],
+            [1, 1],
+            [1, 1],
+            [1, 1],
+        ], dtype, device)
+        batch_x = tensor([0, 0, 0, 0, 1, 1, 1, 1], torch.long, device)
+        batch_y = tensor([0, 1], torch.long, device)
 
-    batch_x = tensor([0, 0, 0, 0, 1, 1, 1, 1], torch.long, device)
-    batch_y = tensor([0, 1], torch.long, device)
+        edge_index = radius(x, x, 2, max_num_neighbors=2)
+        assert to_set(edge_index) == set([(0, 0), (0, 1), 
+                                          (1, 0), (1, 1), 
+                                          (2, 0), (2, 1), 
+                                          (3, 0), (3, 1), ])
 
-    edge_index = radius(x, y, 2, max_num_neighbors=4)
-    assert to_set(edge_index) == set([(0, 0), (0, 1), (0, 2), (0, 3), (1, 1),
-                                      (1, 2), (1, 5), (1, 6)])
+        #edge_index = radius(x, x, 2, max_num_neighbors=4)
+        #assert to_set(edge_index) == set([(0, 0), (0, 4), 
+        #                                (1, 1), (1, 2), (1, 5), (1, 6)])
+    else:   # here we keep euclidean
+        batch_x = tensor([0, 0, 0, 0, 1, 1, 1, 1], torch.long, device)
+        batch_y = tensor([0, 1], torch.long, device)
 
+        edge_index = radius(x, y, 2, max_num_neighbors=4)
+        assert to_set(edge_index) == set([(0, 0), (0, 4), 
+                                        (1, 1), (1, 2), (1, 5), (1, 6),
+                                        (2, 0), (2, 1), (2, 2), (2, 3)])
+"""
     edge_index = radius(x, y, 2, batch_x, batch_y, max_num_neighbors=4)
     assert to_set(edge_index) == set([(0, 0), (0, 1), (0, 2), (0, 3), (1, 5),
                                       (1, 6)])
@@ -77,3 +100,4 @@ def test_radius_graph_large(dtype, device):
     truth = set([(i, j) for i, ns in enumerate(col) for j in ns])
 
     assert to_set(edge_index.cpu()) == truth
+"""

@@ -25,8 +25,9 @@ radius_kernel(const scalar_t *__restrict__ x, const scalar_t *__restrict__ y,
   for (int64_t n_x = ptr_x[example_idx]; n_x < ptr_x[example_idx + 1]; n_x++) {
     scalar_t dist = 0;
     for (int64_t d = 0; d < dim; d++) {
-      dist += (x[n_x * dim + d] - y[n_y * dim + d]) *
-              (x[n_x * dim + d] - y[n_y * dim + d]);
+      //dist += (x[n_x * dim + d] - y[n_y * dim + d]) *
+      //        (x[n_x * dim + d] - y[n_y * dim + d]);
+      dist += abs( x[n_x * dim + d] - y[n_y * dim + d] ); // hacked into manhattan distance
     }
 
     if (dist < r) {
@@ -85,7 +86,8 @@ torch::Tensor radius_cuda(const torch::Tensor x, const torch::Tensor y,
     radius_kernel<scalar_t><<<BLOCKS, THREADS, 0, stream>>>(
         x.data_ptr<scalar_t>(), y.data_ptr<scalar_t>(),
         ptr_x.value().data_ptr<int64_t>(), ptr_y.value().data_ptr<int64_t>(),
-        row.data_ptr<int64_t>(), col.data_ptr<int64_t>(), r * r, x.size(0),
+        //row.data_ptr<int64_t>(), col.data_ptr<int64_t>(), r * r, x.size(0),
+        row.data_ptr<int64_t>(), col.data_ptr<int64_t>(), r, x.size(0),
         y.size(0), x.size(1), ptr_x.value().numel() - 1, max_num_neighbors);
   });
 
